@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"app/internal/domain"
 	"app/internal/dto"
 	"app/internal/pkg/money"
 	appvalidator "app/internal/pkg/validator"
 	"app/internal/repository"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -341,13 +341,23 @@ func (s *BarangMasukService) resolveOrCreateBarang(tx *gorm.DB, req dto.BarangMa
 	if satuan == "" {
 		satuan = "PCS"
 	}
+	alokasi := domain.AlokasiFEFO
+	if domain.MetodeAlokasi(strings.ToUpper(strings.TrimSpace(req.MetodeAlokasi))) == domain.AlokasiFIFO {
+		alokasi = domain.AlokasiFIFO
+	}
+	alertDays := req.ExpiryAlertDays
+	if alertDays <= 0 {
+		alertDays = 30
+	}
 	b := domain.Barang{
 		KodeBarang:      kode,
 		NamaItem:        strings.TrimSpace(req.NamaItem),
 		Brand:           strings.TrimSpace(req.Brand),
 		Satuan:          satuan,
-		MetodeAlokasi:   domain.AlokasiFEFO,
-		ExpiryAlertDays: 30,
+		MinStock:        req.MinStock,
+		ReorderPoint:    req.ReorderPoint,
+		MetodeAlokasi:   alokasi,
+		ExpiryAlertDays: alertDays,
 		IsActive:        true,
 	}
 	if err := s.barang.Create(tx, &b); err != nil {

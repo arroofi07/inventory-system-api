@@ -261,3 +261,103 @@ func TestBarangMasukAbaikanHargaClientMTGT(t *testing.T) {
 		t.Fatalf("hpp server want 20000.00 got %s", created.Data.HPP)
 	}
 }
+
+func TestBarangMasukCreateMasterFields(t *testing.T) {
+	eng, tokAdmin, _, cleanup := setupBarangMasukRouter(t)
+	defer cleanup()
+	r := eng.r
+
+	suffix := time.Now().UnixNano() % 100000
+	kode := fmt.Sprintf("SB03_MF_%d", suffix)
+	body, _ := json.Marshal(map[string]any{
+		"kode_barang":       kode,
+		"buat_barang_baru":  true,
+		"nama_item":         "Item SB03 master",
+		"brand":             "BrandSB03",
+		"satuan":            "BOX",
+		"min_stock":         7,
+		"reorder_point":     12,
+		"metode_alokasi":    "FIFO",
+		"expiry_alert_days": 14,
+		"no_faktur":         fmt.Sprintf("SB03_F_MF_%d", suffix),
+		"no_batch":          "B-MF",
+		"exp":               "2027-06-30",
+		"tanggal_masuk":     "2026-09-01",
+		"qty":               5,
+		"harga":             "10000.00",
+		"disc_hpp_1":        "0",
+		"disc_hpp_2":        "0",
+		"disc_hpp_3":        "0",
+		"markup_mt_type":    "percent",
+		"markup_mt_amount":  "10.00",
+		"markup_gt_type":    "percent",
+		"markup_gt_amount":  "10.00",
+	})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/barang-masuk", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+tokAdmin)
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("create: %d %s", w.Code, w.Body.String())
+	}
+
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	db, err := repository.NewDB(cfg.DB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var b domain.Barang
+	if err := db.Where("kode_barang = ?", kode).First(&b).Error; err != nil {
+		t.Fatalf("load barang: %v", err)
+	}
+	if b.Satuan != "BOX" {
+		t.Fatalf("satuan want BOX got %s", b.Satuan)
+	}
+	if b.MinStock != 7 || b.ReorderPoint != 12 {
+		t.Fatalf("min/reorder want 7/12 got %d/%d", b.MinStock, b.ReorderPoint)
+	}
+	if b.MetodeAlokasi != domain.AlokasiFIFO {
+		t.Fatalf("metode_alokasi want FIFO got %s", b.MetodeAlokasi)
+	}
+	if b.ExpiryAlertDays != 14 {
+		t.Fatalf("expiry_alert_days want 14 got %d", b.ExpiryAlertDays)
+	}
+
+	kodeDefault := fmt.Sprintf("SB03_MD_%d", suffix)
+	bodyDefault, _ := json.Marshal(map[string]any{
+		"kode_barang":      kodeDefault,
+		"buat_barang_baru": true,
+		"nama_item":        "Item SB03 default",
+		"brand":            "BrandSB03",
+		"no_faktur":        fmt.Sprintf("SB03_F_MD_%d", suffix),
+		"no_batch":         "B-MD",
+		"exp":              "2027-06-30",
+		"tanggal_masuk":    "2026-09-01",
+		"qty":              1,
+		"harga":            "10000.00",
+		"markup_mt_type":   "percent",
+		"markup_mt_amount": "10.00",
+		"markup_gt_type":   "percent",
+		"markup_gt_amount": "10.00",
+	})
+	wDef := httptest.NewRecorder()
+	reqDef := httptest.NewRequest(http.MethodPost, "/api/v1/barang-masuk", bytes.NewReader(bodyDefault))
+	reqDef.Header.Set("Content-Type", "application/json")
+	reqDef.Header.Set("Authorization", "Bearer "+tokAdmin)
+	r.ServeHTTP(wDef, reqDef)
+	if wDef.Code != http.StatusCreated {
+		t.Fatalf("create default: %d %s", wDef.Code, wDef.Body.String())
+	}
+	var def domain.Barang
+	if err := db.Where("kode_barang = ?", kodeDefault).First(&def).Error; err != nil {
+		t.Fatalf("load default: %v", err)
+	}
+	if def.Satuan != "PCS" || def.MetodeAlokasi != domain.AlokasiFEFO || def.ExpiryAlertDays != 30 {
+		t.Fatalf("default master satuan=%s alokasi=%s alert=%d", def.Satuan, def.MetodeAlokasi, def.ExpiryAlertDays)
+	}
+}
