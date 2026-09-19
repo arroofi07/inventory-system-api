@@ -1,0 +1,17 @@
+tmp/
+bin/
+coverage.out
+coverage.html
+.env
+*.exe
+*.test
+*.out
+dist/
+coverage/
+artifacts/
+.idea/
+.vscode/
+*.swp
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
