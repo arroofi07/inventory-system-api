@@ -3,6 +3,7 @@ package domain_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"app/internal/domain"
 	"github.com/shopspring/decimal"
@@ -18,11 +19,11 @@ func dec(s string) decimal.Decimal {
 
 func TestHitungHPP(t *testing.T) {
 	kasus := []struct {
-		nama             string
-		harga            string
+		nama                string
+		harga               string
 		disc1, disc2, disc3 string
-		hppDiharapkan    string
-		hppPPNDiharapkan string
+		hppDiharapkan       string
+		hppPPNDiharapkan    string
 	}{
 		{
 			nama:             "tiga tingkat diskon",
@@ -105,6 +106,17 @@ func TestHitungHargaChannel(t *testing.T) {
 	}
 	if !fallback.Equal(harga) {
 		t.Fatalf("tipe markup tidak dikenal harus mengembalikan harga: got %s", fallback)
+	}
+}
+
+func TestHitungAgingMonth(t *testing.T) {
+	masuk := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+	exp := time.Date(2027, 6, 30, 0, 0, 0, 0, time.UTC)
+	if got := domain.HitungAgingMonth(masuk, exp); got != 9 {
+		t.Fatalf("aging want 9 got %d", got)
+	}
+	if got := domain.HitungAgingMonth(masuk, masuk); got != 0 {
+		t.Fatalf("exp sama want 0 got %d", got)
 	}
 }
 

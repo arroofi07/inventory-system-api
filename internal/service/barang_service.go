@@ -110,9 +110,6 @@ func (s *BarangService) Buat(ctx context.Context, req dto.BarangCreateRequest, m
 	if req.ReorderPoint != nil {
 		b.ReorderPoint = *req.ReorderPoint
 	}
-	if req.MetodeAlokasi != "" {
-		b.MetodeAlokasi = domain.MetodeAlokasi(req.MetodeAlokasi)
-	}
 	if req.ExpiryAlertDays != nil {
 		b.ExpiryAlertDays = *req.ExpiryAlertDays
 	}
@@ -162,7 +159,7 @@ func (s *BarangService) Ubah(ctx context.Context, id uint64, req dto.BarangUpdat
 			sebelum.ReorderPoint = *req.ReorderPoint
 		}
 		if req.MetodeAlokasi != nil {
-			sebelum.MetodeAlokasi = domain.MetodeAlokasi(*req.MetodeAlokasi)
+			sebelum.MetodeAlokasi = domain.AlokasiFEFO
 		}
 		if req.ExpiryAlertDays != nil {
 			sebelum.ExpiryAlertDays = *req.ExpiryAlertDays

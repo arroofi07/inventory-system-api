@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"time"
+
 	"app/internal/pkg/money"
 	"github.com/shopspring/decimal"
 )
@@ -54,4 +56,21 @@ func DiskonBerjenjang(nilai, disc1, disc2, disc3 decimal.Decimal) decimal.Decima
 		hasil = money.TerapkanDiskon(hasil, disc)
 	}
 	return hasil
+}
+
+// HitungAgingMonth selisih bulan penuh dari tanggal masuk ke exp. 0 bila exp tidak setelah masuk.
+func HitungAgingMonth(tanggalMasuk, exp time.Time) int {
+	masuk := time.Date(tanggalMasuk.Year(), tanggalMasuk.Month(), tanggalMasuk.Day(), 0, 0, 0, 0, time.UTC)
+	keluar := time.Date(exp.Year(), exp.Month(), exp.Day(), 0, 0, 0, 0, time.UTC)
+	if !keluar.After(masuk) {
+		return 0
+	}
+	months := (keluar.Year()-masuk.Year())*12 + int(keluar.Month()-masuk.Month())
+	if keluar.Day() < masuk.Day() {
+		months--
+	}
+	if months < 0 {
+		return 0
+	}
+	return months
 }

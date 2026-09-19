@@ -109,6 +109,7 @@ func TestBarangMasukCreateHPPDanUnique(t *testing.T) {
 			HargaGT      string `json:"harga_gt"`
 			QtyTersedia  int    `json:"qty_tersedia"`
 			KodeBarang   string `json:"kode_barang"`
+			AgingMonth   int    `json:"aging_month"`
 		} `json:"data"`
 	}
 	_ = json.Unmarshal(w.Body.Bytes(), &created)
@@ -126,6 +127,9 @@ func TestBarangMasukCreateHPPDanUnique(t *testing.T) {
 	}
 	if created.Data.QtyTersedia != 10 {
 		t.Fatalf("qty_tersedia %d", created.Data.QtyTersedia)
+	}
+	if created.Data.AgingMonth != 9 {
+		t.Fatalf("aging_month want 9 got %d", created.Data.AgingMonth)
 	}
 
 	// Client tidak boleh override harga jual — field diabaikan / tidak di body create.
@@ -321,8 +325,8 @@ func TestBarangMasukCreateMasterFields(t *testing.T) {
 	if b.MinStock != 7 || b.ReorderPoint != 12 {
 		t.Fatalf("min/reorder want 7/12 got %d/%d", b.MinStock, b.ReorderPoint)
 	}
-	if b.MetodeAlokasi != domain.AlokasiFIFO {
-		t.Fatalf("metode_alokasi want FIFO got %s", b.MetodeAlokasi)
+	if b.MetodeAlokasi != domain.AlokasiFEFO {
+		t.Fatalf("metode_alokasi want FEFO (dikunci) got %s", b.MetodeAlokasi)
 	}
 	if b.ExpiryAlertDays != 14 {
 		t.Fatalf("expiry_alert_days want 14 got %d", b.ExpiryAlertDays)

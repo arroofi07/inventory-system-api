@@ -90,10 +90,7 @@ func (s *BarangMasukService) Buat(ctx context.Context, req dto.BarangMasukCreate
 	if err != nil {
 		return nil, err
 	}
-	aging := 0
-	if req.AgingMonth != nil {
-		aging = *req.AgingMonth
-	}
+	aging := domain.HitungAgingMonth(time.Time(tglMasuk), time.Time(exp))
 
 	var out *dto.BarangMasukResponse
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -184,9 +181,7 @@ func (s *BarangMasukService) Ubah(ctx context.Context, id uint64, req dto.Barang
 			}
 			bm.TanggalMasuk = d
 		}
-		if req.AgingMonth != nil {
-			bm.AgingMonth = *req.AgingMonth
-		}
+		bm.AgingMonth = domain.HitungAgingMonth(time.Time(bm.TanggalMasuk), time.Time(bm.Exp))
 		if req.Qty != nil {
 			bm.Qty = *req.Qty
 		}
@@ -341,10 +336,6 @@ func (s *BarangMasukService) resolveOrCreateBarang(tx *gorm.DB, req dto.BarangMa
 	if satuan == "" {
 		satuan = "PCS"
 	}
-	alokasi := domain.AlokasiFEFO
-	if domain.MetodeAlokasi(strings.ToUpper(strings.TrimSpace(req.MetodeAlokasi))) == domain.AlokasiFIFO {
-		alokasi = domain.AlokasiFIFO
-	}
 	alertDays := req.ExpiryAlertDays
 	if alertDays <= 0 {
 		alertDays = 30
@@ -356,7 +347,7 @@ func (s *BarangMasukService) resolveOrCreateBarang(tx *gorm.DB, req dto.BarangMa
 		Satuan:          satuan,
 		MinStock:        req.MinStock,
 		ReorderPoint:    req.ReorderPoint,
-		MetodeAlokasi:   alokasi,
+		MetodeAlokasi:   domain.AlokasiFEFO,
 		ExpiryAlertDays: alertDays,
 		IsActive:        true,
 	}
