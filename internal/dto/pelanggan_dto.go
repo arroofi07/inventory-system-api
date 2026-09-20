@@ -40,7 +40,7 @@ type RiwayatTransaksiItem struct {
 
 // PelangganCreateRequest body POST /pelanggan.
 type PelangganCreateRequest struct {
-	KodePelanggan             string  `json:"kode_pelanggan" validate:"required,max=32"`
+	KodePelanggan             *string `json:"kode_pelanggan" validate:"omitempty,max=32"`
 	NamaPelanggan             string  `json:"nama_pelanggan" validate:"required,max=255"`
 	TglRegistrasi             string  `json:"tgl_registrasi" validate:"required"`
 	Phone                     string  `json:"phone" validate:"required,max=30"`

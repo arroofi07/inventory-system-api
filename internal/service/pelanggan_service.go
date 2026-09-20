@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"time"
 
 	"app/internal/domain"
 	"app/internal/dto"
@@ -173,48 +174,70 @@ func (s *PelangganService) Buat(ctx context.Context, req dto.PelangganCreateRequ
 		return nil, err
 	}
 
-	p := domain.Pelanggan{
-		KodePelanggan:             strings.TrimSpace(req.KodePelanggan),
-		NamaPelanggan:             strings.TrimSpace(req.NamaPelanggan),
-		TglRegistrasi:             tgl,
-		Phone:                     strings.TrimSpace(req.Phone),
-		NPWPNIK:                   trimPtr(req.NPWPNIK),
-		NamaPemilikNPWPNIK:        trimPtr(req.NamaPemilikNPWPNIK),
-		AlamatNPWPNIK:             trimPtr(req.AlamatNPWPNIK),
-		Territory:                 strings.TrimSpace(req.Territory),
-		Distrik:                   strings.TrimSpace(req.Distrik),
-		AlamatToko:                strings.TrimSpace(req.AlamatToko),
-		RTRW:                      trimPtr(req.RTRW),
-		Provinsi:                  strings.TrimSpace(req.Provinsi),
-		Kabupaten:                 strings.TrimSpace(req.Kabupaten),
-		Kecamatan:                 strings.TrimSpace(req.Kecamatan),
-		Kelurahan:                 strings.TrimSpace(req.Kelurahan),
-		KodePos:                   trimPtr(req.KodePos),
-		ChannelOutlet:             domain.ChannelOutlet(req.ChannelOutlet),
-		AlamatPengantaranBarang:   trimPtr(req.AlamatPengantaranBarang),
-		JenisBangunan:             trimPtr(req.JenisBangunan),
-		StatusBangunan:            trimPtr(req.StatusBangunan),
-		NominalPengambilanPertama: nominal,
-		EstimasiBatasKredit:       kredit,
-		IsActive:                  true,
-	}
+	var out *dto.PelangganResponse
+	const maxCoba = 3
+	for coba := 0; coba < maxCoba; coba++ {
+		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			kode := ""
+			if req.KodePelanggan != nil && strings.TrimSpace(*req.KodePelanggan) != "" {
+				kode = strings.TrimSpace(*req.KodePelanggan)
+			} else {
+				generated, genErr := s.repo.NextKodePelanggan(tx, time.Now())
+				if genErr != nil {
+					return genErr
+				}
+				kode = generated
+			}
 
-	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := s.repo.Create(tx, &p); err != nil {
-			return err
-		}
-		ringkas := "buat pelanggan " + p.KodePelanggan
-		return s.audit.CatatLengkap(tx, repository.AuditTulis{
-			UserID: meta.UserID, Aksi: "pelanggan.buat", EntityType: "pelanggan",
-			EntityID: &p.ID, Ringkasan: &ringkas, DataSesudah: p,
-			IPAddress: meta.IPAddress, RequestID: meta.RequestID,
+			p := domain.Pelanggan{
+				KodePelanggan:             kode,
+				NamaPelanggan:             strings.TrimSpace(req.NamaPelanggan),
+				TglRegistrasi:             tgl,
+				Phone:                     strings.TrimSpace(req.Phone),
+				NPWPNIK:                   trimPtr(req.NPWPNIK),
+				NamaPemilikNPWPNIK:        trimPtr(req.NamaPemilikNPWPNIK),
+				AlamatNPWPNIK:             trimPtr(req.AlamatNPWPNIK),
+				Territory:                 strings.TrimSpace(req.Territory),
+				Distrik:                   strings.TrimSpace(req.Distrik),
+				AlamatToko:                strings.TrimSpace(req.AlamatToko),
+				RTRW:                      trimPtr(req.RTRW),
+				Provinsi:                  strings.TrimSpace(req.Provinsi),
+				Kabupaten:                 strings.TrimSpace(req.Kabupaten),
+				Kecamatan:                 strings.TrimSpace(req.Kecamatan),
+				Kelurahan:                 strings.TrimSpace(req.Kelurahan),
+				KodePos:                   trimPtr(req.KodePos),
+				ChannelOutlet:             domain.ChannelOutlet(req.ChannelOutlet),
+				AlamatPengantaranBarang:   trimPtr(req.AlamatPengantaranBarang),
+				JenisBangunan:             trimPtr(req.JenisBangunan),
+				StatusBangunan:            trimPtr(req.StatusBangunan),
+				NominalPengambilanPertama: nominal,
+				EstimasiBatasKredit:       kredit,
+				IsActive:                  true,
+			}
+			if err := s.repo.Create(tx, &p); err != nil {
+				return err
+			}
+			ringkas := "buat pelanggan " + p.KodePelanggan
+			if err := s.audit.CatatLengkap(tx, repository.AuditTulis{
+				UserID: meta.UserID, Aksi: "pelanggan.buat", EntityType: "pelanggan",
+				EntityID: &p.ID, Ringkasan: &ringkas, DataSesudah: p,
+				IPAddress: meta.IPAddress, RequestID: meta.RequestID,
+			}); err != nil {
+				return err
+			}
+			resp := mapPelanggan(&p, false)
+			out = &resp
+			return nil
 		})
-	})
-	if err != nil {
+		if err == nil {
+			return out, nil
+		}
+		if err == domain.ErrDuplikat && (req.KodePelanggan == nil || strings.TrimSpace(*req.KodePelanggan) == "") {
+			continue
+		}
 		return nil, err
 	}
-	resp := mapPelanggan(&p, false)
-	return &resp, nil
+	return nil, err
 }
 
 func (s *PelangganService) Ubah(ctx context.Context, id uint64, req dto.PelangganUpdateRequest, meta AuditMeta) (*dto.PelangganResponse, error) {

@@ -2,12 +2,15 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"app/internal/domain"
 	"app/internal/dto"
 	"app/internal/pkg/query"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var KolomSortPelanggan = map[string]string{
@@ -123,4 +126,30 @@ func (r *PelangganRepo) PunyaTransaksi(db *gorm.DB, kode string) (bool, error) {
 		Where("kode_pelanggan = ?", kode).
 		Count(&n).Error
 	return n > 0, err
+}
+
+// NextKodePelanggan menghasilkan PLG+YYYYMM+4 digit dengan lock baris bulan berjalan.
+func (r *PelangganRepo) NextKodePelanggan(db *gorm.DB, sekarang time.Time) (string, error) {
+	prefix := "PLG" + sekarang.Format("200601")
+	var terakhir domain.Pelanggan
+	err := db.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("kode_pelanggan LIKE ?", prefix+"%").
+		Order("kode_pelanggan DESC").
+		Limit(1).
+		Find(&terakhir).Error
+	if err != nil {
+		return "", err
+	}
+	urut := 1
+	if terakhir.ID != 0 && len(terakhir.KodePelanggan) >= 4 {
+		suf := terakhir.KodePelanggan[len(terakhir.KodePelanggan)-4:]
+		var n int
+		if _, err := fmt.Sscanf(suf, "%d", &n); err == nil {
+			urut = n + 1
+		}
+	}
+	if urut > 9999 {
+		return "", fmt.Errorf("urutan kode pelanggan bulan ini penuh")
+	}
+	return fmt.Sprintf("%s%04d", prefix, urut), nil
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,8 +60,13 @@ func setupPelangganRouter(t *testing.T) (*ginEngine, string, string, func()) {
 }
 
 func pelangganBody(kode string) map[string]any {
+	body := pelangganBodyTanpaKode()
+	body["kode_pelanggan"] = kode
+	return body
+}
+
+func pelangganBodyTanpaKode() map[string]any {
 	return map[string]any{
-		"kode_pelanggan": kode,
 		"nama_pelanggan": "Toko SB06",
 		"tgl_registrasi": "2026-01-15",
 		"phone":          "08123456789",
@@ -72,6 +78,33 @@ func pelangganBody(kode string) map[string]any {
 		"kecamatan":      "Kebayoran",
 		"kelurahan":      "Senayan",
 		"channel_outlet": "General Trade",
+	}
+}
+
+func TestPelangganKodeOtomatis(t *testing.T) {
+	eng, _, tokenAdmin, cleanup := setupPelangganRouter(t)
+	defer cleanup()
+	r := eng.r
+
+	createBody, _ := json.Marshal(pelangganBodyTanpaKode())
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/pelanggan", bytes.NewReader(createBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+tokenAdmin)
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("create tanpa kode: %d %s", w.Code, w.Body.String())
+	}
+	var created struct {
+		Data struct {
+			ID            uint64 `json:"id"`
+			KodePelanggan string `json:"kode_pelanggan"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(w.Body.Bytes(), &created)
+	prefix := "PLG" + time.Now().Format("200601")
+	if !strings.HasPrefix(created.Data.KodePelanggan, prefix) || len(created.Data.KodePelanggan) != len(prefix)+4 {
+		t.Fatalf("kode otomatis: %s want prefix %s+4digit", created.Data.KodePelanggan, prefix)
 	}
 }
 

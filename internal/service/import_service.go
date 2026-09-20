@@ -299,8 +299,9 @@ func parsePelangganCSV(data []byte) ([]dto.PelangganCreateRequest, []domain.Gala
 		nominal := ptrOrNil(csvx.AmbilKolom(row, idx, "nominal_pengambilan_pertama"))
 		kredit := ptrOrNil(csvx.AmbilKolom(row, idx, "estimasi_batas_kredit"))
 
+		kodePtr := kode
 		reqs = append(reqs, dto.PelangganCreateRequest{
-			KodePelanggan: kode,
+			KodePelanggan: &kodePtr,
 			NamaPelanggan: csvx.AmbilKolom(row, idx, "nama_pelanggan"),
 			TglRegistrasi: csvx.AmbilKolom(row, idx, "tgl_registrasi"),
 			Phone:         csvx.AmbilKolom(row, idx, "phone"),
