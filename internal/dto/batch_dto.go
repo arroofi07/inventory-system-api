@@ -45,11 +45,18 @@ type BatchListItem struct {
 	TanggalMasuk  string `json:"tanggal_masuk"`
 	QtyMasuk      int    `json:"qty_masuk"`
 	QtyTersedia   int    `json:"qty_tersedia"`
-	Harga         string `json:"harga"`
-	HargaMT       string `json:"harga_mt"`
-	HargaGT       string `json:"harga_gt"`
-	HPP           string `json:"hpp"`
-	HPPDenganPPN  string `json:"hpp_dengan_ppn"`
+	Harga          string `json:"harga"`
+	DiscHPP1       string `json:"disc_hpp_1"`
+	DiscHPP2       string `json:"disc_hpp_2"`
+	DiscHPP3       string `json:"disc_hpp_3"`
+	MarkupMTType   string `json:"markup_mt_type"`
+	MarkupMTAmount string `json:"markup_mt_amount"`
+	MarkupGTType   string `json:"markup_gt_type"`
+	MarkupGTAmount string `json:"markup_gt_amount"`
+	HargaMT        string `json:"harga_mt"`
+	HargaGT        string `json:"harga_gt"`
+	HPP            string `json:"hpp"`
+	HPPDenganPPN   string `json:"hpp_dengan_ppn"`
 }
 
 // BatchListQuery query GET /barang/{kode}/batch.

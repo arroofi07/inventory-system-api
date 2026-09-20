@@ -330,11 +330,18 @@ func (s *BarangService) DaftarBatch(ctx context.Context, kode string, q dto.Batc
 			TanggalMasuk:  formatDate(row.TanggalMasuk),
 			QtyMasuk:      row.Qty,
 			QtyTersedia:   row.QtyTersedia,
-			Harga:         dto.FormatUang(row.Harga),
-			HargaMT:       dto.FormatUang(row.HargaMT),
-			HargaGT:       dto.FormatUang(row.HargaGT),
-			HPP:           dto.FormatUang(row.HPP),
-			HPPDenganPPN:  dto.FormatUang(row.HPPDenganPPN),
+			Harga:          dto.FormatUang(row.Harga),
+			DiscHPP1:       dto.FormatUang(row.DiscHPP1),
+			DiscHPP2:       dto.FormatUang(row.DiscHPP2),
+			DiscHPP3:       dto.FormatUang(row.DiscHPP3),
+			MarkupMTType:   string(row.MarkupMTType),
+			MarkupMTAmount: dto.FormatUang(row.MarkupMTAmount),
+			MarkupGTType:   string(row.MarkupGTType),
+			MarkupGTAmount: dto.FormatUang(row.MarkupGTAmount),
+			HargaMT:        dto.FormatUang(row.HargaMT),
+			HargaGT:        dto.FormatUang(row.HargaGT),
+			HPP:            dto.FormatUang(row.HPP),
+			HPPDenganPPN:   dto.FormatUang(row.HPPDenganPPN),
 		})
 	}
 	if q.Limit > 0 && len(out) > q.Limit {
