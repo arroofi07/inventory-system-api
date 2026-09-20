@@ -259,6 +259,8 @@ func (s *BarangService) BatchTersedia(ctx context.Context, kode string, q dto.Ba
 			QtyMasuk:      row.Qty,
 			QtyTersedia:   row.QtyTersedia,
 			HargaJual:     dto.FormatUang(hargaJual),
+			HargaMT:       dto.FormatUang(row.HargaMT),
+			HargaGT:       dto.FormatUang(row.HargaGT),
 			HPPDenganPPN:  dto.FormatUang(row.HPPDenganPPN),
 			MendekatiExp:  mendekati,
 		})

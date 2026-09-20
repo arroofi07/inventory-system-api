@@ -11,6 +11,8 @@ type BatchTersediaItem struct {
 	QtyMasuk      int    `json:"qty_masuk"`
 	QtyTersedia   int    `json:"qty_tersedia"`
 	HargaJual     string `json:"harga_jual"`
+	HargaMT       string `json:"harga_mt"`
+	HargaGT       string `json:"harga_gt"`
 	HPPDenganPPN  string `json:"hpp_dengan_ppn"`
 	MendekatiExp  bool   `json:"mendekati_exp"`
 }
