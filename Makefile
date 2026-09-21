@@ -1,4 +1,4 @@
-.PHONY: help run dev build vet test test-race test-cover lint swagger swagger-check migrate-up migrate-down migrate-new seed etl etl-dry etl-framework etl-audit-sumber etl-bersihkan-sumber docker-up docker-down ci
+.PHONY: help run dev build vet test test-race test-cover lint swagger swagger-check migrate-up migrate-down migrate-new seed seed-demo seed-demo-reset etl etl-dry etl-framework etl-audit-sumber etl-bersihkan-sumber docker-up docker-down ci
 
 help: ## Tampilkan target yang tersedia
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
@@ -45,8 +45,14 @@ migrate-down: ## Rollback satu migrasi
 migrate-new: ## Buat file migrasi baru: make migrate-new name=nama_migrasi
 	migrate create -ext sql -dir migrations -seq $(name)
 
-seed: ## Isi data referensi dan demo
+seed: ## Isi super_admin dari SEED_SUPER_ADMIN_*
 	go run ./cmd/seed
+
+seed-demo: ## Super admin + data demo semua modul (dilarang di production)
+	go run ./cmd/seed --demo
+
+seed-demo-reset: ## Hapus data demo lalu isi ulang
+	go run ./cmd/seed --demo --reset
 
 etl-dry: ## Cetak rencana tahap ETL tanpa menulis DB
 	go run ./cmd/etl -dry-run

@@ -102,10 +102,22 @@ Skema domain (15 tabel + CHECK) ada di `migrations/000001_init_schema.*.sql` (SA
 ## Seeder
 
 ```bash
-make seed
+make seed            # super_admin dari SEED_SUPER_ADMIN_*
+make seed-demo       # + data demo semua modul (dilarang bila APP_ENV=production)
+make seed-demo-reset # hapus data DEMO-* lalu isi ulang
 ```
 
 Isi `SEED_SUPER_ADMIN_EMAIL` dan `SEED_SUPER_ADMIN_PASSWORD` di `.env` sebelum seed.
+
+Data demo memakai prefix `DEMO-` / email `demo.*@pkb.test` (password `SEED_DEMO_PASSWORD`, default `rahasia123`):
+
+| Role | Email |
+|------|--------|
+| admin | `demo.admin@pkb.test` |
+| sales | `demo.sales@pkb.test` |
+| afiliasi | `demo.afiliasi@pkb.test` |
+
+Isi demo: barang (NORMAL/RENDAH/HABIS/dekat exp/nonaktif), penerimaan FEFO, pelanggan 5 channel, 4 tipe promo, transaksi pending/approved/rejected, piutang hutang/sebagian/lunas/overdue, faktur terkunci, `stock_alerts`.
 
 ## CI lokal
 
