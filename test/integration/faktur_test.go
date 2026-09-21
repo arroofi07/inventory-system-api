@@ -106,8 +106,8 @@ func TestFakturJSONLayoutLockDanCetakUlang(t *testing.T) {
 	if !out3.Data.CetakUlang {
 		t.Fatal("harus cetak_ulang")
 	}
-	if out3.Data.FakturDicetakAt == nil || *out3.Data.FakturDicetakAt != *out1.Data.FakturDicetakAt {
-		t.Fatalf("timestamp berubah: %v vs %v", out3.Data.FakturDicetakAt, out1.Data.FakturDicetakAt)
+	if out3.Data.FakturDicetakAt == nil || out1.Data.FakturDicetakAt == nil || *out3.Data.FakturDicetakAt != *out1.Data.FakturDicetakAt {
+		t.Fatalf("timestamp berubah: %q vs %q", ptrStr(out3.Data.FakturDicetakAt), ptrStr(out1.Data.FakturDicetakAt))
 	}
 
 	if err := db.Raw(`SELECT COUNT(*) FROM audit_logs WHERE aksi = 'faktur.cetak' AND entity_id = ?`, trxID).Scan(&auditN).Error; err != nil {

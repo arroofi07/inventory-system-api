@@ -33,11 +33,13 @@ func setupAuthRouterTTL(t *testing.T, accessTTL time.Duration) (*handler.Depende
 	cfg.JWT.AccessTTL = accessTTL
 	cfg.JWT.RefreshTTL = 7 * 24 * time.Hour
 	cfg.Login.RateLimitPerMinute = 6
+	cfg.DB = capTestPool(cfg.DB)
 
 	db, err := repository.NewDB(cfg.DB)
 	if err != nil {
 		t.Skipf("db: %v", err)
 	}
+	t.Cleanup(func() { closeGorm(db) })
 	sqlDB, err := db.DB()
 	if err != nil {
 		t.Fatal(err)
@@ -70,10 +72,11 @@ func setupAuthRouterTTL(t *testing.T, accessTTL time.Duration) (*handler.Depende
 func createUserWithHash(t *testing.T, email, hash string, role domain.Role, active bool) {
 	t.Helper()
 	cfg, _ := config.Load()
-	db, err := repository.NewDB(cfg.DB)
+	db, err := repository.NewDB(capTestPool(cfg.DB))
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer closeGorm(db)
 	activeInt := 0
 	if active {
 		activeInt = 1

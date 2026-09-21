@@ -21,10 +21,7 @@ func setupPromoRouter(t *testing.T) (*ginEngine, string, string, func()) {
 	t.Helper()
 	deps, cleanupAuth := setupAuthRouter(t)
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	cleanup := func() {
 		_ = db.Exec(`DELETE FROM audit_logs WHERE entity_type = 'promo'`)

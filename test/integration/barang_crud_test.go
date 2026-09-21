@@ -21,10 +21,7 @@ func setupBarangRouter(t *testing.T) (*ginEngine, string, func()) {
 	deps, cleanupAuth := setupAuthRouter(t)
 
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	cleanup := func() {
 		_ = db.Exec(`DELETE FROM audit_logs WHERE entity_type = 'barang'`)
@@ -214,7 +211,7 @@ func TestBarangCRUDPola(t *testing.T) {
 
 	// audit tertulis
 	cfg, _ := config.Load()
-	db, _ := repository.NewDB(cfg.DB)
+	db := openGormCfg(t, cfg.DB)
 	var auditCount int64
 	_ = db.Raw(`SELECT COUNT(*) FROM audit_logs WHERE entity_type='barang' AND entity_id=?`, created.Data.ID).Scan(&auditCount)
 	if auditCount < 3 {

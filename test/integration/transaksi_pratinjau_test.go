@@ -21,10 +21,7 @@ func setupTransaksiPratinjauRouter(t *testing.T) (http.Handler, string, string, 
 	t.Helper()
 	deps, cleanupAuth := setupAuthRouter(t)
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	prefix := "SC02_%"
 	cleanup := func() {
@@ -161,7 +158,7 @@ func TestPratinjauTotalDanHargaServerTanpaTulisDB(t *testing.T) {
 	promoBody, _ := json.Marshal(map[string]any{
 		"kode_promo": kodePromo, "nama_promo": "Beli 10 Gratis 1",
 		"tipe_promo": "buy_x_get_y", "buy_qty": 10, "get_qty": 1,
-		"kode_barang": kodeA,
+		"kode_barang":   kodeA,
 		"tanggal_mulai": "2026-01-01", "tanggal_berakhir": "2026-12-31",
 	})
 	wPromo := httptest.NewRecorder()

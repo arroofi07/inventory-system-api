@@ -21,10 +21,7 @@ func setupBarangMasukRouter(t *testing.T) (*ginEngine, string, string, func()) {
 	deps, cleanupAuth := setupAuthRouter(t)
 
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	cleanup := func() {
 		_ = db.Exec(`DELETE FROM stock_movements WHERE reference_type = 'barang_masuk' AND reference_id IN (
@@ -185,7 +182,7 @@ func TestBarangMasukCreateHPPDanUnique(t *testing.T) {
 
 	// Stok master naik
 	cfg, _ := config.Load()
-	db, _ := repository.NewDB(cfg.DB)
+	db := openGormCfg(t, cfg.DB)
 	var stok int
 	_ = db.Raw(`SELECT stok_tersedia FROM barang WHERE kode_barang = ?`, kode).Scan(&stok)
 	if stok != 10 {
@@ -311,10 +308,7 @@ func TestBarangMasukCreateMasterFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 	var b domain.Barang
 	if err := db.Where("kode_barang = ?", kode).First(&b).Error; err != nil {
 		t.Fatalf("load barang: %v", err)

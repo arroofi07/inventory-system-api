@@ -22,10 +22,7 @@ func setupUserRouter(t *testing.T) (*ginEngine, string, string, func()) {
 	deps, cleanupAuth := setupAuthRouter(t)
 
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	cleanup := func() {
 		_ = db.Exec(`DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'sb07_%')`)
@@ -123,10 +120,7 @@ func TestUserCRUDRoleRevokeAdminProtected(t *testing.T) {
 	// Login sales → ada refresh token
 	_ = loginToken(t, r, emailSales, "rahasia123")
 	cfg, _ := config.Load()
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 	var nToken int64
 	_ = db.Raw(`SELECT COUNT(*) FROM refresh_tokens WHERE user_id = ? AND revoked_at IS NULL`, created.Data.ID).Scan(&nToken)
 	if nToken < 1 {

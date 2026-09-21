@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"app/internal/config"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func openTestDB(t *testing.T) *sql.DB {
@@ -31,6 +31,7 @@ func openTestDB(t *testing.T) *sql.DB {
 	if err := db.Ping(); err != nil {
 		t.Skipf("TEST_DB tidak tersedia: %v", err)
 	}
+	t.Cleanup(func() { _ = db.Close() })
 	return db
 }
 

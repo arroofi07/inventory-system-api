@@ -66,7 +66,7 @@ func (s *FakturService) Ambil(
 		}
 
 		cetakUlang := false
-		now := s.clock.Now()
+		now := s.clock.Now().Truncate(time.Second)
 
 		if s.cfg.FakturLockAktif {
 			if full.FakturDicetakAt != nil {

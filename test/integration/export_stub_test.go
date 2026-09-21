@@ -21,10 +21,7 @@ func setupExportRouter(t *testing.T) (*ginEngine, string, func()) {
 	t.Helper()
 	deps, cleanupAuth := setupAuthRouter(t)
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 	cleanup := func() {
 		cleanupAuth()
 	}

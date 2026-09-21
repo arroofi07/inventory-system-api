@@ -32,11 +32,13 @@ func setupAuthRouter(t *testing.T) (*handler.Dependencies, func()) {
 	cfg.JWT.AccessTTL = 15 * time.Minute
 	cfg.JWT.RefreshTTL = 7 * 24 * time.Hour
 	cfg.Login.RateLimitPerMinute = 6
+	cfg.DB = capTestPool(cfg.DB)
 
 	db, err := repository.NewDB(cfg.DB)
 	if err != nil {
 		t.Skipf("db: %v", err)
 	}
+	t.Cleanup(func() { closeGorm(db) })
 	sqlDB, err := db.DB()
 	if err != nil {
 		t.Fatal(err)
@@ -69,10 +71,11 @@ func setupAuthRouter(t *testing.T) (*handler.Dependencies, func()) {
 func createUser(t *testing.T, email, plain string, role domain.Role, active bool) {
 	t.Helper()
 	cfg, _ := config.Load()
-	db, err := repository.NewDB(cfg.DB)
+	db, err := repository.NewDB(capTestPool(cfg.DB))
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer closeGorm(db)
 	hash, err := password.Hash(plain)
 	if err != nil {
 		t.Fatal(err)

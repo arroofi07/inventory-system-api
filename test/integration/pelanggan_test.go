@@ -22,10 +22,7 @@ func setupPelangganRouter(t *testing.T) (*ginEngine, string, string, func()) {
 	deps, cleanupAuth := setupAuthRouter(t)
 
 	cfg := deps.Config
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 
 	prefix := "SB06_%"
 	cleanup := func() {
@@ -209,10 +206,7 @@ func TestPelangganCRUDSelect2LockKode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db, err := repository.NewDB(cfg.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openGormCfg(t, cfg.DB)
 	if err := db.Exec(`
 		INSERT INTO transaksi_penjualan (
 			tanggal, periode, kode_pelanggan, nama_pelanggan, alamat, channel_outlet, area,
