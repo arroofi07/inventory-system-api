@@ -11,7 +11,7 @@ import (
 	"app/internal/service"
 )
 
-// @title                      PKB Web API
+// @title                      sistem-barang API
 // @version                    1.0
 // @description                API sistem distribusi FMCG PKB: inventory berbasis batch,
 // @description                penjualan dengan approval stok, promo, faktur, dan piutang.

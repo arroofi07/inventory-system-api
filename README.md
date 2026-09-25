@@ -1,6 +1,6 @@
-# PKB API
+# sistem-barang API
 
-Backend Go (Gin + GORM + swaggo) untuk sistem distribusi PKB Web.
+Backend Go (Gin + GORM + swaggo) untuk sistem-barang.
 
 Struktur folder mengikuti [docs/02-arsitektur-target.md](../docs/02-arsitektur-target.md) bagian 3.
 

@@ -29,7 +29,7 @@ func TestLaporanFormat_Struktur09Pasal7(t *testing.T) {
 	out := buf.String()
 
 	for _, want := range []string{
-		"=== Laporan ETL PKB Web ===",
+		"=== Laporan ETL sistem-barang ===",
 		"Sumber       : pkb_lama @ 10.0.0.5",
 		"Target       : pkb @ 10.0.0.9",
 		"Checksum     : abc123",

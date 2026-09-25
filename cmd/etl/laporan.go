@@ -169,7 +169,7 @@ func (l *Laporan) Format(w io.Writer) error {
 	}
 	durasi := l.Selesai.Sub(l.Dijalankan).Round(time.Second)
 
-	if _, err := fmt.Fprintln(w, "=== Laporan ETL PKB Web ==="); err != nil {
+	if _, err := fmt.Fprintln(w, "=== Laporan ETL sistem-barang ==="); err != nil {
 		return err
 	}
 	fmt.Fprintf(w, "Dijalankan   : %s\n", l.Dijalankan.Format(time.RFC3339))
