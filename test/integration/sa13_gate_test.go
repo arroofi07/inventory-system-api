@@ -77,14 +77,10 @@ func createUserWithHash(t *testing.T, email, hash string, role domain.Role, acti
 		t.Fatal(err)
 	}
 	defer closeGorm(db)
-	activeInt := 0
-	if active {
-		activeInt = 1
-	}
 	if err := db.Exec(`
 		INSERT INTO users (name, email, password, role, is_active, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-	`, "SA13 Laravel", email, hash, string(role), activeInt).Error; err != nil {
+	`, "SA13 Laravel", email, hash, string(role), active).Error; err != nil {
 		t.Fatal(err)
 	}
 }

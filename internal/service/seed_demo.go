@@ -58,29 +58,36 @@ func DemoSudahAda(db *gorm.DB) (bool, error) {
 // HapusDataDemo menghapus baris bertanda DEMO- / demo.* (urutan FK).
 func HapusDataDemo(db *gorm.DB) error {
 	stmts := []string{
-		`DELETE tdp FROM transaksi_detail_promo tdp
-			INNER JOIN transaksi_detail td ON td.id = tdp.transaksi_detail_id
-			INNER JOIN transaksi_penjualan tp ON tp.id = td.transaksi_penjualan_id
-			WHERE tp.kode_pelanggan LIKE 'DEMO-%'`,
-		`DELETE td FROM transaksi_detail td
-			INNER JOIN transaksi_penjualan tp ON tp.id = td.transaksi_penjualan_id
-			WHERE tp.kode_pelanggan LIKE 'DEMO-%'`,
-		`DELETE rp FROM riwayat_pembayaran rp
-			INNER JOIN transaksi_penjualan tp ON tp.id = rp.transaksi_penjualan_id
-			WHERE tp.kode_pelanggan LIKE 'DEMO-%'`,
+		`DELETE FROM transaksi_detail_promo tdp
+			USING transaksi_detail td, transaksi_penjualan tp
+			WHERE td.id = tdp.transaksi_detail_id
+			  AND tp.id = td.transaksi_penjualan_id
+			  AND tp.kode_pelanggan LIKE 'DEMO-%'`,
+		`DELETE FROM transaksi_detail td
+			USING transaksi_penjualan tp
+			WHERE tp.id = td.transaksi_penjualan_id
+			  AND tp.kode_pelanggan LIKE 'DEMO-%'`,
+		`DELETE FROM riwayat_pembayaran rp
+			USING transaksi_penjualan tp
+			WHERE tp.id = rp.transaksi_penjualan_id
+			  AND tp.kode_pelanggan LIKE 'DEMO-%'`,
 		`DELETE FROM transaksi_penjualan WHERE kode_pelanggan LIKE 'DEMO-%'`,
-		`DELETE sm FROM stock_movements sm
-			INNER JOIN barang b ON b.id = sm.barang_id
-			WHERE b.kode_barang LIKE 'DEMO-%'`,
-		`DELETE pcl FROM price_change_logs pcl
-			INNER JOIN barang b ON b.id = pcl.barang_id
-			WHERE b.kode_barang LIKE 'DEMO-%'`,
-		`DELETE sa FROM stock_alerts sa
-			INNER JOIN barang b ON b.id = sa.barang_id
-			WHERE b.kode_barang LIKE 'DEMO-%'`,
-		`DELETE bm FROM barang_masuk bm
-			INNER JOIN barang b ON b.id = bm.barang_id
-			WHERE b.kode_barang LIKE 'DEMO-%'`,
+		`DELETE FROM stock_movements sm
+			USING barang b
+			WHERE b.id = sm.barang_id
+			  AND b.kode_barang LIKE 'DEMO-%'`,
+		`DELETE FROM price_change_logs pcl
+			USING barang b
+			WHERE b.id = pcl.barang_id
+			  AND b.kode_barang LIKE 'DEMO-%'`,
+		`DELETE FROM stock_alerts sa
+			USING barang b
+			WHERE b.id = sa.barang_id
+			  AND b.kode_barang LIKE 'DEMO-%'`,
+		`DELETE FROM barang_masuk bm
+			USING barang b
+			WHERE b.id = bm.barang_id
+			  AND b.kode_barang LIKE 'DEMO-%'`,
 		`DELETE FROM promos WHERE kode_promo LIKE 'DEMO-%'`,
 		`DELETE FROM pelanggan WHERE kode_pelanggan LIKE 'DEMO-%'`,
 		`DELETE FROM barang WHERE kode_barang LIKE 'DEMO-%'`,

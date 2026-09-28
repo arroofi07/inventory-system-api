@@ -57,7 +57,7 @@ func migrasiBarang(ctx context.Context, sumber *Sumber, target *Target, lap *Lap
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO barang
 			(id, kode_barang, nama_item, brand, satuan, stok_tersedia,
 			 min_stock, reorder_point, metode_alokasi, expiry_alert_days,

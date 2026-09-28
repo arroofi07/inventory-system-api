@@ -59,7 +59,7 @@ func migrasiPriceChangeLogs(ctx context.Context, sumber *Sumber, target *Target,
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO price_change_logs
 			(id, barang_masuk_id, barang_id, bulk_operation_id,
 			 old_harga, old_disc_hpp_1, old_disc_hpp_2, old_disc_hpp_3,

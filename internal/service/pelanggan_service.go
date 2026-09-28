@@ -132,8 +132,8 @@ func (s *PelangganService) RiwayatTransaksi(ctx context.Context, idOrKode string
 	var rows []row
 	err := db.Raw(`
 		SELECT id,
-			DATE_FORMAT(tanggal, '%Y-%m-%d') AS tanggal,
-			CAST(total_akhir AS CHAR) AS total_akhir,
+			TO_CHAR(tanggal, 'YYYY-MM-DD') AS tanggal,
+			CAST(total_akhir AS TEXT) AS total_akhir,
 			status_approval,
 			no_transaksi
 		FROM transaksi_penjualan

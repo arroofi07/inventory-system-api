@@ -52,7 +52,7 @@ func (r *UserRepo) List(db *gorm.DB, q dto.UserListQuery) (*UserListHasil, error
 }
 
 func (r *UserRepo) Update(db *gorm.DB, u *domain.User) error {
-	return mapMySQLDuplicate(db.Save(u).Error)
+	return mapDuplikat(db.Save(u).Error)
 }
 
 func (r *UserRepo) Delete(db *gorm.DB, id uint64) error {
@@ -87,5 +87,5 @@ func (r *UserRepo) CountActiveByRole(db *gorm.DB, role domain.Role) (int64, erro
 
 // CreateMapped membungkus Create dengan deteksi duplikat email/ktp.
 func (r *UserRepo) CreateMapped(db *gorm.DB, u *domain.User) error {
-	return mapMySQLDuplicate(r.Create(db, u))
+	return mapDuplikat(r.Create(db, u))
 }

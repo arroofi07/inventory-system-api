@@ -102,11 +102,11 @@ func (r *PelangganRepo) FindByKode(db *gorm.DB, kode string) (*domain.Pelanggan,
 }
 
 func (r *PelangganRepo) Create(db *gorm.DB, p *domain.Pelanggan) error {
-	return mapMySQLDuplicate(db.Create(p).Error)
+	return mapDuplikat(db.Create(p).Error)
 }
 
 func (r *PelangganRepo) Update(db *gorm.DB, p *domain.Pelanggan) error {
-	return mapMySQLDuplicate(db.Save(p).Error)
+	return mapDuplikat(db.Save(p).Error)
 }
 
 func (r *PelangganRepo) SetActive(db *gorm.DB, id uint64, active bool) error {

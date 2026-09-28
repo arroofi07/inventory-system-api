@@ -51,7 +51,7 @@ LEFT JOIN (
   FROM stock_movements
   GROUP BY barang_id
 ) sm ON sm.barang_id = b.id
-WHERE b.is_active = 1`
+WHERE b.is_active = TRUE`
 	args := []any{}
 	if strings.TrimSpace(q.Q) != "" {
 		like := "%" + strings.TrimSpace(q.Q) + "%"
@@ -82,7 +82,7 @@ SELECT b.id, b.kode_barang, b.nama_item, b.brand, b.satuan, b.stok_tersedia, b.m
        COALESCE(sm.total_keluar,0) AS total_keluar,
        COALESCE(bm.jumlah_batch,0) AS jumlah_batch,
        bm.batch_terdekat_exp AS batch_terdekat_exp,
-       CAST(COALESCE(bm.nilai_hpp,0) AS CHAR) AS nilai_stok_hpp
+       CAST(COALESCE(bm.nilai_hpp,0) AS TEXT) AS nilai_stok_hpp
 ` + base + ` ORDER BY b.kode_barang ASC LIMIT ? OFFSET ?`
 	argsPage := append(append([]any{}, args...), q.PerPage, q.Offset())
 	var rows []LaporanStokRow
@@ -93,7 +93,7 @@ SELECT b.id, b.kode_barang, b.nama_item, b.brand, b.satuan, b.stok_tersedia, b.m
 }
 
 func (r *LaporanRepo) RingkasanStok(db *gorm.DB, q dto.LaporanStokQuery) (dto.LaporanStokRingkasan, error) {
-	where := `WHERE is_active = 1`
+	where := `WHERE is_active = TRUE`
 	args := []any{}
 	if strings.TrimSpace(q.Q) != "" {
 		like := "%" + strings.TrimSpace(q.Q) + "%"
@@ -202,14 +202,14 @@ SELECT d.id AS detail_id, t.id AS transaksi_id, t.no_transaksi, t.tanggal,
        d.urutan, d.kode_item, d.nama_item, COALESCE(b.brand,'') AS brand,
        d.batch_number, d.expiry_date,
        d.qty, d.qty_promo, d.total_qty_keluar,
-       CAST(d.harga AS CHAR) AS harga,
-       CAST(d.disc1_persen AS CHAR) AS disc1,
-       CAST(d.disc2_persen AS CHAR) AS disc2,
-       CAST(d.disc3_persen AS CHAR) AS disc3,
-       CAST(d.total_after_disc AS CHAR) AS total_after_disc,
-       CAST(d.hpp_snapshot AS CHAR) AS hpp_snapshot,
-       CAST(t.total AS CHAR) AS header_total,
-       CAST(t.ppn_nominal AS CHAR) AS header_ppn
+       CAST(d.harga AS TEXT) AS harga,
+       CAST(d.disc1_persen AS TEXT) AS disc1,
+       CAST(d.disc2_persen AS TEXT) AS disc2,
+       CAST(d.disc3_persen AS TEXT) AS disc3,
+       CAST(d.total_after_disc AS TEXT) AS total_after_disc,
+       CAST(d.hpp_snapshot AS TEXT) AS hpp_snapshot,
+       CAST(t.total AS TEXT) AS header_total,
+       CAST(t.ppn_nominal AS TEXT) AS header_ppn
 ` + base + ` ORDER BY t.tanggal DESC, t.id DESC, d.urutan ASC LIMIT ? OFFSET ?`
 	argsPage := append(append([]any{}, args...), q.PerPage, q.Offset())
 	var rows []BarangKeluarRow
@@ -272,7 +272,7 @@ func (r *LaporanRepo) AgregatPerChannel(db *gorm.DB, dateFrom, dateTo string) ([
 	sql := `
 SELECT t.channel_outlet,
        COUNT(DISTINCT t.id) AS jumlah_transaksi,
-       CAST(COALESCE(SUM(t.total_akhir),0) AS CHAR) AS total_penjualan,
+       CAST(COALESCE(SUM(t.total_akhir),0) AS TEXT) AS total_penjualan,
        COALESCE(SUM(q.qty),0) AS total_qty,
        COUNT(DISTINCT t.kode_pelanggan) AS jumlah_outlet
 FROM transaksi_penjualan t
@@ -301,7 +301,7 @@ func (r *LaporanRepo) AgregatPerTerritory(db *gorm.DB, dateFrom, dateTo string) 
 	sql := `
 SELECT COALESCE(NULLIF(p.territory,''), NULLIF(t.area,''), '(tanpa territory)') AS territory,
        COUNT(DISTINCT t.id) AS jumlah_transaksi,
-       CAST(COALESCE(SUM(t.total_akhir),0) AS CHAR) AS total_penjualan,
+       CAST(COALESCE(SUM(t.total_akhir),0) AS TEXT) AS total_penjualan,
        COALESCE(SUM(q.qty),0) AS total_qty,
        COUNT(DISTINCT t.kode_pelanggan) AS jumlah_outlet
 FROM transaksi_penjualan t
@@ -334,7 +334,7 @@ SELECT d.kode_item, d.nama_item,
        COALESCE(SUM(d.qty),0) AS total_qty,
        COALESCE(SUM(d.total_qty_keluar),0) AS total_qty_keluar,
        COUNT(DISTINCT d.transaksi_penjualan_id) AS jumlah_transaksi,
-       CAST(COALESCE(SUM(d.total_after_disc),0) AS CHAR) AS total_after_disc
+       CAST(COALESCE(SUM(d.total_after_disc),0) AS TEXT) AS total_after_disc
 FROM transaksi_detail d
 INNER JOIN transaksi_penjualan t ON t.id = d.transaksi_penjualan_id
 WHERE ` + where + `
@@ -358,7 +358,7 @@ func (r *LaporanRepo) TrenHarian(db *gorm.DB, dateFrom, dateTo string) ([]trenHa
 	sql := `
 SELECT t.tanggal,
        COUNT(DISTINCT t.id) AS jumlah_transaksi,
-       CAST(COALESCE(SUM(t.total_akhir),0) AS CHAR) AS total_penjualan
+       CAST(COALESCE(SUM(t.total_akhir),0) AS TEXT) AS total_penjualan
 FROM transaksi_penjualan t
 WHERE ` + where + `
 GROUP BY t.tanggal

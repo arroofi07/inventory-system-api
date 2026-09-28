@@ -11,7 +11,7 @@ type Barang struct {
 	StokTersedia    int           `gorm:"column:stok_tersedia;not null;default:0" json:"stok_tersedia"`
 	MinStock        int           `gorm:"column:min_stock;not null;default:0" json:"min_stock"`
 	ReorderPoint    int           `gorm:"column:reorder_point;not null;default:0" json:"reorder_point"`
-	MetodeAlokasi   MetodeAlokasi `gorm:"column:metode_alokasi;type:enum('FEFO','FIFO');default:FEFO" json:"metode_alokasi"`
+	MetodeAlokasi   MetodeAlokasi `gorm:"column:metode_alokasi;type:varchar(8);default:FEFO" json:"metode_alokasi"`
 	ExpiryAlertDays int           `gorm:"column:expiry_alert_days;not null;default:30" json:"expiry_alert_days"`
 	IsActive        bool          `gorm:"column:is_active;not null;default:true" json:"is_active"`
 	CreatedAt       time.Time     `json:"created_at"`

@@ -80,15 +80,11 @@ func createUser(t *testing.T, email, plain string, role domain.Role, active bool
 	if err != nil {
 		t.Fatal(err)
 	}
-	activeInt := 0
-	if active {
-		activeInt = 1
-	}
-	// Raw insert agar is_active=0 tidak hilang karena zero-value GORM.
+	// Raw insert agar is_active=false tidak hilang karena zero-value GORM.
 	if err := db.Exec(`
 		INSERT INTO users (name, email, password, role, is_active, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-	`, "SA06 Test", email, hash, string(role), activeInt).Error; err != nil {
+	`, "SA06 Test", email, hash, string(role), active).Error; err != nil {
 		t.Fatal(err)
 	}
 }

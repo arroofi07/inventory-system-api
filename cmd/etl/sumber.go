@@ -6,12 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 // DBConfig adalah parameter koneksi MySQL untuk sumber atau target.
@@ -227,18 +230,62 @@ func (s *Sumber) KolomPertama(ctx context.Context, tabel string, kandidat ...str
 	return ""
 }
 
-// Target adalah koneksi tulis ke database skema baru.
+// Target adalah koneksi tulis ke database PostgreSQL skema baru.
 type Target struct {
 	db  *sql.DB
 	cfg DBConfig
 }
 
-// BukaTarget membuka koneksi MySQL target (read-write).
+func (c DBConfig) postgresDSN() string {
+	ssl := envOr("ETL_TARGET_SSLMODE", envOr("DB_SSLMODE", "disable"))
+	u := &url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(c.User, c.Password),
+		Host:   net.JoinHostPort(c.Host, c.Port),
+		Path:   "/" + c.Name,
+	}
+	q := url.Values{}
+	q.Set("sslmode", ssl)
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+// rebindPG mengganti placeholder `?` menjadi `$1`, `$2`, … di luar literal string.
+func rebindPG(query string) string {
+	var b strings.Builder
+	b.Grow(len(query) + 8)
+	n := 0
+	inStr := false
+	for i := 0; i < len(query); i++ {
+		c := query[i]
+		if c == '\'' {
+			if inStr && i+1 < len(query) && query[i+1] == '\'' {
+				b.WriteByte(c)
+				b.WriteByte(query[i+1])
+				i++
+				continue
+			}
+			inStr = !inStr
+			b.WriteByte(c)
+			continue
+		}
+		if c == '?' && !inStr {
+			n++
+			b.WriteByte('$')
+			b.WriteString(strconv.Itoa(n))
+			continue
+		}
+		b.WriteByte(c)
+	}
+	return b.String()
+}
+
+// BukaTarget membuka koneksi PostgreSQL target (read-write).
 func BukaTarget(cfg DBConfig) (*Target, error) {
 	if err := cfg.valid(); err != nil {
 		return nil, fmt.Errorf("target: %w", err)
 	}
-	db, err := sql.Open("mysql", cfg.dsn())
+	db, err := sql.Open("pgx", cfg.postgresDSN())
 	if err != nil {
 		return nil, fmt.Errorf("target open: %w", err)
 	}
@@ -266,16 +313,20 @@ func (t *Target) Close() error {
 
 func (t *Target) DB() *sql.DB { return t.db }
 
+func (t *Target) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return t.db.PrepareContext(ctx, rebindPG(query))
+}
+
 func (t *Target) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	return t.db.ExecContext(ctx, query, args...)
+	return t.db.ExecContext(ctx, rebindPG(query), args...)
 }
 
 func (t *Target) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	return t.db.QueryContext(ctx, query, args...)
+	return t.db.QueryContext(ctx, rebindPG(query), args...)
 }
 
 func (t *Target) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-	return t.db.QueryRowContext(ctx, query, args...)
+	return t.db.QueryRowContext(ctx, rebindPG(query), args...)
 }
 
 func (t *Target) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
@@ -302,19 +353,13 @@ var tabelETL = []string{
 
 // TruncateETLTables mengosongkan tabel target agar ETL idempoten (09 §2 prinsip 2).
 func (t *Target) TruncateETLTables(ctx context.Context) error {
-	if _, err := t.db.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=0"); err != nil {
-		return fmt.Errorf("disable fk: %w", err)
+	q := "TRUNCATE TABLE " + strings.Join(tabelETL, ", ") + " RESTART IDENTITY CASCADE"
+	if _, err := t.db.ExecContext(ctx, q); err != nil {
+		return fmt.Errorf("truncate: %w", err)
 	}
-	defer func() {
-		_, _ = t.db.ExecContext(context.Background(), "SET FOREIGN_KEY_CHECKS=1")
-	}()
-
-	for _, tabel := range tabelETL {
-		if _, err := t.db.ExecContext(ctx, "TRUNCATE TABLE `"+tabel+"`"); err != nil {
-			return fmt.Errorf("truncate %s: %w", tabel, err)
-		}
+	if _, err := t.db.ExecContext(ctx, "UPDATE no_transaksi_seq SET last_number = 0 WHERE id = 1"); err != nil {
+		return fmt.Errorf("reset no_transaksi_seq: %w", err)
 	}
-	_, _ = t.db.ExecContext(ctx, "UPDATE no_transaksi_seq SET last_number = 0 WHERE id = 1")
 	return nil
 }
 
@@ -355,7 +400,7 @@ func LoadETLConfig(allowMissingSumber bool) (ETLConfig, error) {
 		},
 		Target: DBConfig{
 			Host:     envOr("ETL_TARGET_HOST", envOr("DB_HOST", "127.0.0.1")),
-			Port:     envOr("ETL_TARGET_PORT", envOr("DB_PORT", "3306")),
+			Port:     envOr("ETL_TARGET_PORT", envOr("DB_PORT", "5432")),
 			Name:     envOr("ETL_TARGET_NAME", envOr("DB_NAME", "pkb")),
 			User:     envOr("ETL_TARGET_USER", envOr("DB_USER", "pkb_app")),
 			Password: firstNonEmpty(os.Getenv("ETL_TARGET_PASSWORD"), os.Getenv("DB_PASSWORD")),

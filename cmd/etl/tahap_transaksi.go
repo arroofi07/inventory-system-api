@@ -89,7 +89,7 @@ func migrasiTransaksiHeader(ctx context.Context, sumber *Sumber, target *Target,
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO transaksi_penjualan
 			(id, no_transaksi, tanggal, periode, kode_pelanggan, nama_pelanggan,
 			 alamat, channel_outlet, area, is_multi_item,
@@ -101,7 +101,7 @@ func migrasiTransaksiHeader(ctx context.Context, sumber *Sumber, target *Target,
 			 status_pembayaran, jumlah_dibayar, sisa_hutang,
 			 tanggal_jatuh_tempo, tanggal_pembayaran_terakhir, keterangan_pembayaran,
 			 faktur_dicetak_at, faktur_dicetak_by, sales_id, created_at, updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?,?)`)
+		VALUES (?,?,?,?,?,?,?,?,?,TRUE,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?,?)`)
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func migrasiTransaksiDetail(ctx context.Context, sumber *Sumber, target *Target,
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO transaksi_detail
 			(transaksi_penjualan_id, urutan, kode_item, nama_item, satuan,
 			 barang_masuk_id, batch_number, expiry_date,
@@ -597,7 +597,7 @@ func migrasiTransaksiDetailPromo(ctx context.Context, sumber *Sumber, target *Ta
 		byID[h.ID] = h
 	}
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO transaksi_detail_promo
 			(transaksi_detail_id, promo_id, kode_promo, nama_promo, tipe_promo, qty_bonus, nilai_diskon, created_at)
 		VALUES (?,?,?,?,?,?,0,?)`)

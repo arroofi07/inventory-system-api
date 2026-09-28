@@ -311,12 +311,12 @@ func (v *Verifikator) countSumber(ctx context.Context, tabel string) (int64, err
 
 func countTabel(ctx context.Context, q queryRower, tabel string) (int64, error) {
 	var n int64
-	err := q.QueryRowContext(ctx, "SELECT COUNT(*) FROM `"+tabel+"`").Scan(&n)
+	err := q.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+tabel).Scan(&n)
 	return n, err
 }
 
 func sumApproved(ctx context.Context, q queryRower, kolom string) (decimal.Decimal, error) {
-	return scanDecRow(ctx, q, `SELECT COALESCE(ROUND(SUM(`+kolom+`), 2), 0) FROM transaksi_penjualan WHERE status_approval = 'approved'`)
+	return scanDecRow(ctx, q, "SELECT COALESCE(ROUND(SUM("+kolom+"), 2), 0) FROM transaksi_penjualan WHERE status_approval = 'approved'")
 }
 
 func scanDecRow(ctx context.Context, q queryRower, sqlText string) (decimal.Decimal, error) {

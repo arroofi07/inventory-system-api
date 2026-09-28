@@ -6,7 +6,7 @@ type StockMovement struct {
 	ID            uint64       `gorm:"primaryKey" json:"id"`
 	BarangID      uint64       `gorm:"column:barang_id;not null" json:"barang_id"`
 	BarangMasukID *uint64      `gorm:"column:barang_masuk_id" json:"barang_masuk_id,omitempty"`
-	MovementType  MovementType `gorm:"column:movement_type;type:enum('PENERIMAAN','PENJUALAN','PEMBATALAN','PENYESUAIAN','OPNAME');not null" json:"movement_type"`
+	MovementType  MovementType `gorm:"column:movement_type;type:varchar(20);not null" json:"movement_type"`
 	Qty           int          `gorm:"not null" json:"qty"`
 	SaldoSetelah  int          `gorm:"column:saldo_setelah;not null" json:"saldo_setelah"`
 	ReferenceType *string      `gorm:"column:reference_type;size:50" json:"reference_type,omitempty"`

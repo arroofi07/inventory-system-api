@@ -103,6 +103,14 @@ func TestDaftarPemeriksaan_V1sampaiV9(t *testing.T) {
 	}
 }
 
+func TestRebindPG(t *testing.T) {
+	got := rebindPG("INSERT INTO t (a, b) VALUES (?, ?) AND note = 'apa?'")
+	want := "INSERT INTO t (a, b) VALUES ($1, $2) AND note = 'apa?'"
+	if got != want {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestLoadETLConfig_SumberTargetBerbeda(t *testing.T) {
 	t.Setenv("ETL_SUMBER_HOST", "127.0.0.1")
 	t.Setenv("ETL_SUMBER_PORT", "3306")

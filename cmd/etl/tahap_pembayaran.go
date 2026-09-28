@@ -50,7 +50,7 @@ func migrasiRiwayatPembayaran(ctx context.Context, sumber *Sumber, target *Targe
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO riwayat_pembayaran
 			(id, transaksi_penjualan_id,
 			 old_jumlah_dibayar, new_jumlah_dibayar, old_sisa_hutang, new_sisa_hutang,

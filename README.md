@@ -7,7 +7,7 @@ Struktur folder mengikuti [docs/02-arsitektur-target.md](../docs/02-arsitektur-t
 ## Prasyarat
 
 - Go 1.22+
-- MySQL 8 (lihat SA-02 untuk Docker Compose)
+- PostgreSQL 16 (lihat Docker Compose di root `sistem-barang`)
 - Salin `.env.example` → `.env` lalu isi rahasia
 
 ## Setup
@@ -17,15 +17,17 @@ cp .env.example .env
 go mod tidy
 ```
 
-Pastikan MySQL jalan (dari root repo):
+Pastikan PostgreSQL jalan (dari root `sistem-barang`):
 
 ```bash
 docker compose up -d
 ```
 
-Adminer: http://localhost:8081 — server `mysql`, user `pkb_app`, password `secret`, DB `pkb`.
+Adminer: http://localhost:8081 — system `PostgreSQL`, server `postgres`, user `pkb_app`, password `secret`, DB `pkb`.
 
-MySQL dipublish ke host port **3307** (bukan 3306) agar tidak bentrok dengan MySQL/XAMPP lokal.
+PostgreSQL dipublish ke host port **5432**.
+
+Untuk Supabase, isi `DB_HOST` dengan host proyek, `DB_NAME=postgres`, `DB_USER=postgres`, `DB_PORT=5432` (koneksi langsung, bukan pooler), dan `DB_SSLMODE=require`.
 
 ## Makefile
 

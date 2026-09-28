@@ -199,7 +199,7 @@ func TestLaporanBarangKeluarLabaPakaiTotalQtyKeluar(t *testing.T) {
 		HPPSnapshot    string
 	}
 	if err := db.Raw(`
-SELECT qty, qty_promo, total_qty_keluar, CAST(hpp_snapshot AS CHAR) AS hpp_snapshot
+SELECT qty, qty_promo, total_qty_keluar, CAST(hpp_snapshot AS TEXT) AS hpp_snapshot
 FROM transaksi_detail WHERE transaksi_penjualan_id = ? LIMIT 1`, trxOut.Data.ID).Scan(&detail).Error; err != nil {
 		t.Fatal(err)
 	}

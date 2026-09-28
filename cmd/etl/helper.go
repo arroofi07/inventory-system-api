@@ -183,12 +183,20 @@ func tipePromoValid(s string) (domain.TipePromo, bool) {
 }
 
 func resetAutoIncrement(ctx context.Context, t *Target, tabel string) {
+	if strings.ContainsAny(tabel, " \t;`\"'") {
+		return
+	}
 	var maxID sql.NullInt64
-	q := fmt.Sprintf("SELECT COALESCE(MAX(id), 0) FROM `%s`", tabel)
+	q := fmt.Sprintf("SELECT COALESCE(MAX(id), 0) FROM %s", tabel)
 	if err := t.QueryRowContext(ctx, q).Scan(&maxID); err != nil {
 		return
 	}
-	_, _ = t.ExecContext(ctx, fmt.Sprintf("ALTER TABLE `%s` AUTO_INCREMENT = %d", tabel, maxID.Int64+1))
+	next := maxID.Int64 + 1
+	if next < 1 {
+		next = 1
+	}
+	_, _ = t.ExecContext(ctx, fmt.Sprintf(
+		"SELECT setval(pg_get_serial_sequence('%s', 'id'), %d, false)", tabel, next))
 }
 
 func hitungSelisihTotalAkhir(total, ppnPersen, totalAkhir decimal.Decimal) (seharusnya, selisih decimal.Decimal, menyimpang bool) {

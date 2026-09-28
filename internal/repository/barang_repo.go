@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"app/internal/domain"
 	"app/internal/dto"
 	"app/internal/pkg/query"
@@ -124,12 +124,12 @@ func (r *BarangRepo) LockByIDs(db *gorm.DB, ids []uint64) ([]domain.Barang, erro
 
 func (r *BarangRepo) Create(db *gorm.DB, b *domain.Barang) error {
 	err := db.Create(b).Error
-	return mapMySQLDuplicate(err)
+	return mapDuplikat(err)
 }
 
 func (r *BarangRepo) Update(db *gorm.DB, b *domain.Barang) error {
 	err := db.Save(b).Error
-	return mapMySQLDuplicate(err)
+	return mapDuplikat(err)
 }
 
 func (r *BarangRepo) SetActive(db *gorm.DB, id uint64, active bool) error {
@@ -143,12 +143,12 @@ func (r *BarangRepo) SetActive(db *gorm.DB, id uint64, active bool) error {
 	return nil
 }
 
-func mapMySQLDuplicate(err error) error {
+func mapDuplikat(err error) error {
 	if err == nil {
 		return nil
 	}
-	var me *mysql.MySQLError
-	if errors.As(err, &me) && me.Number == 1062 {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		return domain.ErrDuplikat
 	}
 	return err

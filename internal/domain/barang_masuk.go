@@ -21,9 +21,9 @@ type BarangMasuk struct {
 	DiscHPP3       decimal.Decimal `gorm:"column:disc_hpp_3;type:decimal(5,2);not null;default:0" json:"disc_hpp_3"`
 	HPP            decimal.Decimal `gorm:"column:hpp;type:decimal(15,2);not null;default:0" json:"hpp"`
 	HPPDenganPPN   decimal.Decimal `gorm:"column:hpp_dengan_ppn;type:decimal(15,2);not null;default:0" json:"hpp_dengan_ppn"`
-	MarkupMTType   MarkupType      `gorm:"column:markup_mt_type;type:enum('percent','value');default:percent" json:"markup_mt_type"`
+	MarkupMTType   MarkupType      `gorm:"column:markup_mt_type;type:varchar(16);default:percent" json:"markup_mt_type"`
 	MarkupMTAmount decimal.Decimal `gorm:"column:markup_mt_amount;type:decimal(15,2);not null;default:0" json:"markup_mt_amount"`
-	MarkupGTType   MarkupType      `gorm:"column:markup_gt_type;type:enum('percent','value');default:percent" json:"markup_gt_type"`
+	MarkupGTType   MarkupType      `gorm:"column:markup_gt_type;type:varchar(16);default:percent" json:"markup_gt_type"`
 	MarkupGTAmount decimal.Decimal `gorm:"column:markup_gt_amount;type:decimal(15,2);not null;default:0" json:"markup_gt_amount"`
 	HargaMT        decimal.Decimal `gorm:"column:harga_mt;type:decimal(15,2);not null;default:0" json:"harga_mt"`
 	HargaGT        decimal.Decimal `gorm:"column:harga_gt;type:decimal(15,2);not null;default:0" json:"harga_gt"`

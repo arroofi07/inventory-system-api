@@ -8,11 +8,11 @@ type User struct {
 	Email           string        `gorm:"size:255;not null;uniqueIndex" json:"email"`
 	EmailVerifiedAt *time.Time    `json:"email_verified_at,omitempty"`
 	Password        string        `gorm:"size:255;not null" json:"-"`
-	Role            Role          `gorm:"type:enum('super_admin','admin','afiliasi','sales');default:sales" json:"role"`
+	Role            Role          `gorm:"type:varchar(32);default:sales" json:"role"`
 	NoHP            *string       `gorm:"column:no_hp;size:30" json:"no_hp,omitempty"`
 	NoKTP           *string       `gorm:"column:no_ktp;size:32;uniqueIndex" json:"no_ktp,omitempty"`
 	Alamat          *string       `gorm:"type:text" json:"alamat,omitempty"`
-	JenisKelamin    *JenisKelamin `gorm:"type:enum('L','P')" json:"jenis_kelamin,omitempty"`
+	JenisKelamin    *JenisKelamin `gorm:"type:varchar(1)" json:"jenis_kelamin,omitempty"`
 	IsActive        bool          `gorm:"not null;default:true" json:"is_active"`
 	CreatedAt       time.Time     `json:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at"`

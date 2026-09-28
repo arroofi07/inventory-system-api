@@ -177,11 +177,11 @@ func (s *DashboardService) sumPenjualanBulan(db *gorm.DB, periode string, salesI
 
 func (s *DashboardService) countStok(db *gorm.DB) (rendah, habis int, err error) {
 	var h, r int64
-	if err = db.Model(&domain.Barang{}).Where("is_active = 1 AND stok_tersedia <= 0").Count(&h).Error; err != nil {
+	if err = db.Model(&domain.Barang{}).Where("is_active = TRUE AND stok_tersedia <= 0").Count(&h).Error; err != nil {
 		return
 	}
 	if err = db.Model(&domain.Barang{}).
-		Where("is_active = 1 AND stok_tersedia > 0 AND stok_tersedia <= min_stock").
+		Where("is_active = TRUE AND stok_tersedia > 0 AND stok_tersedia <= min_stock").
 		Count(&r).Error; err != nil {
 		return
 	}
@@ -194,10 +194,10 @@ func (s *DashboardService) countBatchExp(db *gorm.DB, now time.Time) (int, error
 	var n int64
 	err := db.Raw(`
 		SELECT COUNT(*) FROM barang_masuk bm
-		INNER JOIN barang b ON b.id = bm.barang_id AND b.is_active = 1
+		INNER JOIN barang b ON b.id = bm.barang_id AND b.is_active = TRUE
 		WHERE bm.qty > 0
 		  AND bm.exp >= ?
-		  AND bm.exp <= DATE_ADD(?, INTERVAL b.expiry_alert_days DAY)
+		  AND bm.exp <= CAST(? AS date) + (b.expiry_alert_days * INTERVAL '1 day')
 	`, hari, hari).Scan(&n).Error
 	return int(n), err
 }
@@ -217,10 +217,10 @@ func (s *DashboardService) listPending(db *gorm.DB, salesID *uint64, limit int) 
 	for _, t := range rows {
 		nom := dto.FormatUang(t.TotalAkhir)
 		out = append(out, dto.DashboardAktivitasItem{
-			ID: t.ID,
-			Judul: fmt.Sprintf("#%d · %s", t.ID, t.NamaPelanggan),
-			Subjudul: t.KodePelanggan,
-			Nominal: &nom,
+			ID:        t.ID,
+			Judul:     fmt.Sprintf("#%d · %s", t.ID, t.NamaPelanggan),
+			Subjudul:  t.KodePelanggan,
+			Nominal:   &nom,
 			CreatedAt: t.CreatedAt.Format(time.RFC3339),
 		})
 	}
@@ -258,7 +258,7 @@ func (s *DashboardService) listPembayaran(db *gorm.DB, limit int) ([]dto.Dashboa
 	}
 	var rows []row
 	err := db.Raw(`
-		SELECT r.id, CAST(r.nominal_pembayaran AS CHAR) AS nominal_pembayaran,
+		SELECT r.id, CAST(r.nominal_pembayaran AS TEXT) AS nominal_pembayaran,
 		       r.transaksi_penjualan_id AS transaksi_id, r.changed_at, t.nama_pelanggan
 		FROM riwayat_pembayaran r
 		INNER JOIN transaksi_penjualan t ON t.id = r.transaksi_penjualan_id
@@ -272,9 +272,9 @@ func (s *DashboardService) listPembayaran(db *gorm.DB, limit int) ([]dto.Dashboa
 	for _, r := range rows {
 		nom := r.NominalPembayaran
 		out = append(out, dto.DashboardAktivitasItem{
-			ID: r.ID,
-			Judul: fmt.Sprintf("Bayar trx #%d · %s", r.TransaksiID, r.NamaPelanggan),
-			Nominal: &nom,
+			ID:        r.ID,
+			Judul:     fmt.Sprintf("Bayar trx #%d · %s", r.TransaksiID, r.NamaPelanggan),
+			Nominal:   &nom,
 			CreatedAt: r.ChangedAt.Format(time.RFC3339),
 		})
 	}

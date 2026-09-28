@@ -63,7 +63,7 @@ func migrasiPelanggan(ctx context.Context, sumber *Sumber, target *Target, lap *
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO pelanggan
 			(id, kode_pelanggan, nama_pelanggan, tgl_registrasi, phone,
 			 npwp_nik, nama_pemilik_npwp_nik, alamat_npwp_nik,
@@ -71,7 +71,7 @@ func migrasiPelanggan(ctx context.Context, sumber *Sumber, target *Target, lap *
 			 provinsi, kabupaten, kecamatan, kelurahan, kode_pos,
 			 channel_outlet, alamat_pengantaran_barang, jenis_bangunan, status_bangunan,
 			 nominal_pengambilan_pertama, estimasi_batas_kredit, is_active, created_at, updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)`)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,TRUE,?,?)`)
 	if err != nil {
 		return err
 	}

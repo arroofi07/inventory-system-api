@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -37,6 +38,8 @@ type DBConfig struct {
 	Name            string
 	User            string
 	Password        string
+	SSLMode         string
+	Timezone        string
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
@@ -97,10 +100,11 @@ func Load() (*Config, error) {
 		},
 		DB: DBConfig{
 			Host:         getEnv("DB_HOST", "127.0.0.1"),
-			Port:         getEnv("DB_PORT", "3306"),
+			Port:         getEnv("DB_PORT", "5432"),
 			Name:         getEnv("DB_NAME", "pkb"),
 			User:         getEnv("DB_USER", "pkb_app"),
 			Password:     os.Getenv("DB_PASSWORD"),
+			SSLMode:      getEnv("DB_SSLMODE", "disable"),
 			MaxOpenConns: getEnvInt("DB_MAX_OPEN_CONNS", 25),
 			MaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 10),
 		},
@@ -166,6 +170,8 @@ func Load() (*Config, error) {
 	}
 	cfg.Bisnis.StokMetodeAlokasi = metode
 
+	cfg.DB.Timezone = cfg.App.Timezone
+
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
@@ -188,8 +194,29 @@ func (c *Config) validate() error {
 }
 
 func (c *Config) DSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&charset=utf8mb4",
-		c.DB.User, c.DB.Password, c.DB.Host, c.DB.Port, c.DB.Name)
+	return c.DB.PostgresDSN()
+}
+
+func (c DBConfig) PostgresDSN() string {
+	ssl := c.SSLMode
+	if ssl == "" {
+		ssl = "disable"
+	}
+	tz := c.Timezone
+	if tz == "" {
+		tz = "Asia/Jakarta"
+	}
+	u := &url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(c.User, c.Password),
+		Host:   c.Host + ":" + c.Port,
+		Path:   c.Name,
+	}
+	q := u.Query()
+	q.Set("sslmode", ssl)
+	q.Set("TimeZone", tz)
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func getEnv(key, fallback string) string {

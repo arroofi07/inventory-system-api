@@ -102,12 +102,12 @@ func (r *BarangMasukRepo) FindByID(db *gorm.DB, id uint64) (*domain.BarangMasuk,
 
 func (r *BarangMasukRepo) Create(db *gorm.DB, bm *domain.BarangMasuk) error {
 	err := db.Create(bm).Error
-	return mapMySQLDuplicate(err)
+	return mapDuplikat(err)
 }
 
 func (r *BarangMasukRepo) Update(db *gorm.DB, bm *domain.BarangMasuk) error {
 	err := db.Save(bm).Error
-	return mapMySQLDuplicate(err)
+	return mapDuplikat(err)
 }
 
 func (r *BarangMasukRepo) Delete(db *gorm.DB, id uint64) error {

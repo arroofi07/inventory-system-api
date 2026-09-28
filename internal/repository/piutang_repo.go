@@ -25,7 +25,7 @@ func (r *TransaksiRepo) applyPiutangFilter(db *gorm.DB, q dto.PiutangListQuery, 
 	if q.Q != "" {
 		like := "%" + strings.TrimSpace(q.Q) + "%"
 		tx = tx.Where(
-			"kode_pelanggan LIKE ? OR nama_pelanggan LIKE ? OR IFNULL(no_transaksi,'') LIKE ?",
+			"kode_pelanggan LIKE ? OR nama_pelanggan LIKE ? OR COALESCE(no_transaksi,'') LIKE ?",
 			like, like, like,
 		)
 	}
@@ -62,7 +62,7 @@ func (r *TransaksiRepo) applyPiutangFilter(db *gorm.DB, q dto.PiutangListQuery, 
 		WHEN status_pembayaran = 'lunas' THEN 'lunas'
 		WHEN tanggal_jatuh_tempo IS NULL THEN 'tanpa_jatuh_tempo'
 		WHEN tanggal_jatuh_tempo < '%s' THEN 'overdue'
-		WHEN tanggal_jatuh_tempo <= DATE_ADD('%s', INTERVAL %d DAY) THEN 'mendekati_jatuh_tempo'
+		WHEN tanggal_jatuh_tempo <= DATE '%s' + %d * INTERVAL '1 day' THEN 'mendekati_jatuh_tempo'
 		ELSE 'normal' END`, hariStr, hariStr, ambang)
 
 	if q.HanyaOverdue || q.KategoriJatuhTempo == "overdue" {
@@ -176,7 +176,7 @@ func (r *TransaksiRepo) HitungNotifikasiPiutang(db *gorm.DB, hariIni time.Time, 
 	}
 	err = db.Model(&domain.TransaksiPenjualan{}).
 		Where("status_approval = ? AND status_pembayaran <> ?", domain.ApprovalApproved, domain.PembayaranLunas).
-		Where("tanggal_jatuh_tempo IS NOT NULL AND tanggal_jatuh_tempo >= ? AND tanggal_jatuh_tempo <= DATE_ADD(?, INTERVAL ? DAY)",
+		Where("tanggal_jatuh_tempo IS NOT NULL AND tanggal_jatuh_tempo >= ? AND tanggal_jatuh_tempo <= CAST(? AS date) + (? * INTERVAL '1 day')",
 			hariStr, hariStr, ambang).
 		Count(&nDekat).Error
 	return int(nOver), int(nDekat), err

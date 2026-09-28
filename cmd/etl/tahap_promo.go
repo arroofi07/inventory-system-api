@@ -51,7 +51,7 @@ func migrasiPromo(ctx context.Context, sumber *Sumber, target *Target, lap *Lapo
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO promos
 			(id, kode_promo, nama_promo, deskripsi, tipe_promo,
 			 buy_qty, get_qty, bonus_qty, discount_percentage, discount_amount,

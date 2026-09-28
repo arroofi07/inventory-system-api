@@ -26,7 +26,7 @@ var tabelChecksum = []string{
 	"users",
 }
 
-// HitungChecksumTarget menghitung SHA-256 dari COUNT(*) + CHECKSUM TABLE
+// HitungChecksumTarget menghitung SHA-256 dari COUNT(*) + SUM(id)
 // untuk tabel bisnis. Dijalankan 2× setelah truncate+ETL harus menghasilkan
 // nilai yang sama (09 §2 / SF-01 AC idempoten).
 func HitungChecksumTarget(ctx context.Context, t *Target) (string, error) {
@@ -35,24 +35,12 @@ func HitungChecksumTarget(ctx context.Context, t *Target) (string, error) {
 
 	var b strings.Builder
 	for _, tabel := range names {
-		var n int64
-		q := fmt.Sprintf("SELECT COUNT(*) FROM `%s`", tabel)
-		if err := t.QueryRowContext(ctx, q).Scan(&n); err != nil {
+		var n, sumID int64
+		q := fmt.Sprintf("SELECT COUNT(*), COALESCE(SUM(id), 0) FROM %s", tabel)
+		if err := t.QueryRowContext(ctx, q).Scan(&n, &sumID); err != nil {
 			return "", fmt.Errorf("count %s: %w", tabel, err)
 		}
-
-		// CHECKSUM TABLE mengembalikan checksum numerik MySQL per tabel.
-		var name sql.NullString
-		var cs sql.NullInt64
-		row := t.QueryRowContext(ctx, "CHECKSUM TABLE `"+tabel+"`")
-		if err := row.Scan(&name, &cs); err != nil {
-			return "", fmt.Errorf("checksum %s: %w", tabel, err)
-		}
-		csVal := int64(0)
-		if cs.Valid {
-			csVal = cs.Int64
-		}
-		fmt.Fprintf(&b, "%s:%d:%d\n", tabel, n, csVal)
+		fmt.Fprintf(&b, "%s:%d:%d\n", tabel, n, sumID)
 	}
 
 	// Sertakan counter nomor transaksi.

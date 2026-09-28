@@ -55,7 +55,7 @@ func migrasiUsers(ctx context.Context, sumber *Sumber, target *Target, lap *Lapo
 	defer rows.Close()
 
 	seenKTP := map[string]uint64{}
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO users
 			(id, name, email, email_verified_at, password, role, no_hp, no_ktp,
 			 alamat, jenis_kelamin, is_active, created_at, updated_at)

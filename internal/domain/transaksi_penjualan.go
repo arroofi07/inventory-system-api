@@ -31,7 +31,7 @@ type TransaksiPenjualan struct {
 	TotalQtyDitagih int `gorm:"column:total_qty_ditagih;default:0" json:"total_qty_ditagih"`
 	TotalQtyKeluar  int `gorm:"column:total_qty_keluar;default:0" json:"total_qty_keluar"`
 
-	StatusApproval StatusApproval `gorm:"column:status_approval;type:enum('pending','approved','rejected');default:pending" json:"status_approval"`
+	StatusApproval StatusApproval `gorm:"column:status_approval;type:varchar(16);default:pending" json:"status_approval"`
 	ApprovedAt     *time.Time     `gorm:"column:approved_at" json:"approved_at,omitempty"`
 	ApprovedBy     *uint64        `gorm:"column:approved_by" json:"approved_by,omitempty"`
 	ApprovalNotes  *string        `gorm:"column:approval_notes;type:text" json:"approval_notes,omitempty"`

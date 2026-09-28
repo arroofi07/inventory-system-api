@@ -87,11 +87,11 @@ func (r *PromoRepo) FindByKode(db *gorm.DB, kode string) (*domain.Promo, error) 
 }
 
 func (r *PromoRepo) Create(db *gorm.DB, p *domain.Promo) error {
-	return mapMySQLDuplicate(db.Create(p).Error)
+	return mapDuplikat(db.Create(p).Error)
 }
 
 func (r *PromoRepo) Update(db *gorm.DB, p *domain.Promo) error {
-	return mapMySQLDuplicate(db.Save(p).Error)
+	return mapDuplikat(db.Save(p).Error)
 }
 
 func (r *PromoRepo) SetActive(db *gorm.DB, id uint64, active bool) error {

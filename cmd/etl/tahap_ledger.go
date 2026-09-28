@@ -60,7 +60,7 @@ func bangunLedger(ctx context.Context, _ *Sumber, target *Target, lap *Laporan) 
 	}
 	defer rows.Close()
 
-	stmt, err := target.DB().PrepareContext(ctx, `
+	stmt, err := target.PrepareContext(ctx, `
 		INSERT INTO stock_movements
 			(barang_id, barang_masuk_id, movement_type, qty, saldo_setelah,
 			 reference_type, reference_id, reference_no, keterangan, created_by, created_at)
@@ -110,8 +110,8 @@ func bangunLedger(ctx context.Context, _ *Sumber, target *Target, lap *Laporan) 
 // isiStokTersedia mengisi barang.stok_tersedia dari SUM ledger (tahap 12).
 func isiStokTersedia(ctx context.Context, _ *Sumber, target *Target, lap *Laporan) error {
 	res, err := target.ExecContext(ctx, `
-		UPDATE barang b
-		SET b.stok_tersedia = COALESCE((
+		UPDATE barang AS b
+		SET stok_tersedia = COALESCE((
 			SELECT SUM(sm.qty) FROM stock_movements sm WHERE sm.barang_id = b.id
 		), 0)`)
 	if err != nil {
@@ -140,16 +140,16 @@ func aturCounterNoTransaksi(ctx context.Context, _ *Sumber, target *Target, lap 
 	}
 	var maxNum sql.NullInt64
 	if err := tx.QueryRowContext(ctx, `
-		SELECT MAX(CAST(no_transaksi AS UNSIGNED))
+		SELECT MAX(CAST(no_transaksi AS BIGINT))
 		FROM transaksi_penjualan
-		WHERE no_transaksi REGEXP '^[0-9]+$'`).Scan(&maxNum); err != nil {
+		WHERE no_transaksi ~ '^[0-9]+$'`).Scan(&maxNum); err != nil {
 		return err
 	}
 	last := int64(0)
 	if maxNum.Valid {
 		last = maxNum.Int64
 	}
-	if _, err := tx.ExecContext(ctx, `UPDATE no_transaksi_seq SET last_number = ? WHERE id = 1`, last); err != nil {
+	if _, err := tx.ExecContext(ctx, `UPDATE no_transaksi_seq SET last_number = $1 WHERE id = 1`, last); err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {

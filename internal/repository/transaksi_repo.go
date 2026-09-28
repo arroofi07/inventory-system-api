@@ -139,7 +139,7 @@ func applyTransaksiListFilters(tx *gorm.DB, q dto.TransaksiListQuery) *gorm.DB {
 	if q.Q != "" {
 		like := "%" + strings.TrimSpace(q.Q) + "%"
 		tx = tx.Where(
-			"kode_pelanggan LIKE ? OR nama_pelanggan LIKE ? OR CAST(id AS CHAR) LIKE ? OR IFNULL(no_transaksi,'') LIKE ?",
+			"kode_pelanggan LIKE ? OR nama_pelanggan LIKE ? OR CAST(id AS TEXT) LIKE ? OR COALESCE(no_transaksi,'') LIKE ?",
 			like, like, like, like,
 		)
 	}
@@ -202,7 +202,7 @@ func (r *TransaksiRepo) RingkasanList(db *gorm.DB, q dto.TransaksiListQuery) (ju
 		Total  string
 	}
 	var a agg
-	err = tx.Select("COUNT(*) AS jumlah, CAST(COALESCE(SUM(total_akhir),0) AS CHAR) AS total").Scan(&a).Error
+	err = tx.Select("COUNT(*) AS jumlah, CAST(COALESCE(SUM(total_akhir),0) AS TEXT) AS total").Scan(&a).Error
 	if err != nil {
 		return 0, "0.00", err
 	}

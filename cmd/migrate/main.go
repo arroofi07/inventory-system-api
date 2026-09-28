@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"app/internal/config"
 )
@@ -85,14 +86,7 @@ func newMigrator(cfg *config.Config) (*migrate.Migrate, error) {
 		return nil, fmt.Errorf("source: %w", err)
 	}
 
-	dbURL := fmt.Sprintf(
-		"mysql://%s:%s@tcp(%s:%s)/%s?multiStatements=true&parseTime=true",
-		cfg.DB.User,
-		cfg.DB.Password,
-		cfg.DB.Host,
-		cfg.DB.Port,
-		cfg.DB.Name,
-	)
+	dbURL := strings.Replace(cfg.DSN(), "postgres://", "pgx5://", 1)
 
 	m, err := migrate.NewWithSourceInstance("iofs", source, dbURL)
 	if err != nil {
