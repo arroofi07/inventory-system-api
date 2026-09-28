@@ -1,4 +1,10 @@
 # syntax=docker/dockerfile:1
+# Dokploy: tipe Dockerfile.
+# Root directory: sistem-barang/be
+# Dockerfile: Dockerfile
+# Port container: 8080
+# Health check path: /healthz
+# Env dibaca saat container jalan (lihat .env.example).
 
 FROM golang:1.22-alpine AS base
 WORKDIR /app
@@ -21,12 +27,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -X main.version=${VERSION}" \
     -o /out/api ./cmd/api
 RUN CGO_ENABLED=0 GOOS=linux go build -o /out/migrate ./cmd/migrate
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/seed ./cmd/seed
 
-FROM gcr.io/distroless/static-debian12 AS prod
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates tzdata
+ENV TZ=Asia/Jakarta
 WORKDIR /app
 COPY --from=builder /out/api /app/api
 COPY --from=builder /out/migrate /app/migrate
+COPY --from=builder /out/seed /app/seed
 COPY --from=builder /app/migrations /app/migrations
-USER nonroot:nonroot
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh /app/api /app/migrate /app/seed \
+	&& sed -i 's/\r$//' /docker-entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["/app/api"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

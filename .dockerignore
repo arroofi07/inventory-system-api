@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+tmp
+bin
+coverage
+coverage.out
+coverage.html
+artifacts
+.git
+*.exe
+*.test
+*.out
