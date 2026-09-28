@@ -23,6 +23,9 @@ CMD ["air", "-c", ".air.toml"]
 FROM deps AS builder
 COPY . .
 ARG VERSION=dev
+# docs/docs.go di-gitignore, jadi clone Dokploy tidak membawanya.
+RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6 \
+	&& swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -X main.version=${VERSION}" \
     -o /out/api ./cmd/api
